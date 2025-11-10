@@ -3,6 +3,7 @@ from sklearn.cluster import KMeans, MeanShift, estimate_bandwidth
 from sklearn.metrics import silhouette_score
 import pandas as pd
 from collections import Counter
+import time
 
 class ClusteringComparison:
     def __init__(self, X_train, X_test, y_train, y_test):
@@ -15,11 +16,40 @@ class ClusteringComparison:
     def run_kmeans(self, n_clusters_list=[3, 5, 7, 9], random_state=42):
         """Ejecuta K-Means con diferentes configuraciones"""
         results = []
-        for n_clusters in n_clusters_list:
+        total_configs = len(n_clusters_list)
+        
+        for idx, n_clusters in enumerate(n_clusters_list, 1):
+            print(f"  K-Means: Configuración {idx}/{total_configs} (n_clusters={n_clusters})...", end=' ', flush=True)
+            start_time = time.time()
+            
+            # Optimización: reducir n_init y max_iter para datasets grandes
+            n_samples = len(self.X_train)
+            if n_samples > 50000:
+                n_init = 3  # Reducir inicializaciones
+                max_iter = 100  # Reducir iteraciones máximas
+            else:
+                n_init = 10
+                max_iter = 300
+            
             kmeans = KMeans(n_clusters=n_clusters, random_state=random_state, 
-                          n_init=10, max_iter=300)
+                          n_init=n_init, max_iter=max_iter)
             labels = kmeans.fit_predict(self.X_train)
-            score = silhouette_score(self.X_train, labels)
+            
+            # Optimización: usar muestra para Silhouette Score en datasets grandes
+            if n_samples > 10000:
+                # Usar muestra aleatoria para calcular silhouette score
+                sample_size = min(5000, n_samples)
+                sample_indices = np.random.choice(n_samples, sample_size, replace=False)
+                sample_labels = labels[sample_indices]
+                sample_data = self.X_train[sample_indices]
+                score = silhouette_score(sample_data, sample_labels)
+                print(f"Silhouette Score (muestra de {sample_size}): {score:.4f}", end='')
+            else:
+                score = silhouette_score(self.X_train, labels)
+                print(f"Silhouette Score: {score:.4f}", end='')
+            
+            elapsed = time.time() - start_time
+            print(f" ({elapsed:.1f}s)")
             
             results.append({
                 'algorithm': 'K-Means',
@@ -34,12 +64,39 @@ class ClusteringComparison:
     def run_kmeans_plus_plus(self, n_clusters_list=[3, 5, 7, 9], random_state=42):
         """Ejecuta K-Means++ con diferentes configuraciones"""
         results = []
-        for n_clusters in n_clusters_list:
-            # K-Means++ es la inicialización por defecto en sklearn
+        total_configs = len(n_clusters_list)
+        
+        for idx, n_clusters in enumerate(n_clusters_list, 1):
+            print(f"  K-Means++: Configuración {idx}/{total_configs} (n_clusters={n_clusters})...", end=' ', flush=True)
+            start_time = time.time()
+            
+            # Optimización: reducir n_init y max_iter para datasets grandes
+            n_samples = len(self.X_train)
+            if n_samples > 50000:
+                n_init = 3
+                max_iter = 100
+            else:
+                n_init = 10
+                max_iter = 300
+            
             kmeans = KMeans(n_clusters=n_clusters, init='k-means++', 
-                          random_state=random_state, n_init=10, max_iter=300)
+                          random_state=random_state, n_init=n_init, max_iter=max_iter)
             labels = kmeans.fit_predict(self.X_train)
-            score = silhouette_score(self.X_train, labels)
+            
+            # Optimización: usar muestra para Silhouette Score en datasets grandes
+            if n_samples > 10000:
+                sample_size = min(5000, n_samples)
+                sample_indices = np.random.choice(n_samples, sample_size, replace=False)
+                sample_labels = labels[sample_indices]
+                sample_data = self.X_train[sample_indices]
+                score = silhouette_score(sample_data, sample_labels)
+                print(f"Silhouette Score (muestra de {sample_size}): {score:.4f}", end='')
+            else:
+                score = silhouette_score(self.X_train, labels)
+                print(f"Silhouette Score: {score:.4f}", end='')
+            
+            elapsed = time.time() - start_time
+            print(f" ({elapsed:.1f}s)")
             
             results.append({
                 'algorithm': 'K-Means++',
@@ -57,22 +114,50 @@ class ClusteringComparison:
         if bandwidth_list is None:
             # Estimar bandwidth automáticamente usando diferentes quantiles
             bandwidth_list = []
+            print("  MeanShift: Estimando bandwidths...", end=' ', flush=True)
             for quantile in quantile_list:
-                bw = estimate_bandwidth(self.X_train, quantile=quantile, 
-                                      n_samples=min(1000, len(self.X_train)))
+                # Optimización: usar muestra para estimar bandwidth
+                n_samples = len(self.X_train)
+                sample_size = min(5000, n_samples) if n_samples > 5000 else n_samples
+                sample_indices = np.random.choice(n_samples, sample_size, replace=False)
+                sample_data = self.X_train[sample_indices]
+                
+                bw = estimate_bandwidth(sample_data, quantile=quantile, 
+                                      n_samples=min(1000, sample_size))
                 bandwidth_list.append(bw)
+            print("✓")
         
         results = []
-        for bandwidth in bandwidth_list:
+        total_configs = len(bandwidth_list)
+        
+        for idx, bandwidth in enumerate(bandwidth_list, 1):
+            print(f"  MeanShift: Configuración {idx}/{total_configs} (bandwidth={bandwidth:.3f})...", end=' ', flush=True)
+            start_time = time.time()
+            
             meanshift = MeanShift(bandwidth=bandwidth, bin_seeding=True, 
                                 min_bin_freq=1, n_jobs=-1)
             labels = meanshift.fit_predict(self.X_train)
             n_clusters = len(np.unique(labels))
             
             if n_clusters > 1:  # Silhouette score requiere al menos 2 clusters
-                score = silhouette_score(self.X_train, labels)
+                # Optimización: usar muestra para Silhouette Score
+                n_samples = len(self.X_train)
+                if n_samples > 10000:
+                    sample_size = min(5000, n_samples)
+                    sample_indices = np.random.choice(n_samples, sample_size, replace=False)
+                    sample_labels = labels[sample_indices]
+                    sample_data = self.X_train[sample_indices]
+                    score = silhouette_score(sample_data, sample_labels)
+                    print(f"Silhouette Score (muestra de {sample_size}): {score:.4f}, Clusters: {n_clusters}", end='')
+                else:
+                    score = silhouette_score(self.X_train, labels)
+                    print(f"Silhouette Score: {score:.4f}, Clusters: {n_clusters}", end='')
             else:
                 score = -1  # Penalizar si solo hay 1 cluster
+                print(f"Silhouette Score: {score:.4f} (1 cluster)", end='')
+            
+            elapsed = time.time() - start_time
+            print(f" ({elapsed:.1f}s)")
             
             results.append({
                 'algorithm': 'MeanShift',
@@ -87,13 +172,13 @@ class ClusteringComparison:
     
     def evaluate_all_configurations(self):
         """Ejecuta todas las configuraciones y las evalúa"""
-        print("Ejecutando K-Means...")
+        print("\nEjecutando K-Means...")
         kmeans_results = self.run_kmeans()
         
-        print("Ejecutando K-Means++...")
+        print("\nEjecutando K-Means++...")
         kmeans_pp_results = self.run_kmeans_plus_plus()
         
-        print("Ejecutando MeanShift...")
+        print("\nEjecutando MeanShift...")
         meanshift_results = self.run_meanshift()
         
         # Combinar todos los resultados

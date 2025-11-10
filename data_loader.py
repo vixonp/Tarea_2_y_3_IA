@@ -12,16 +12,24 @@ def load_dataset(file_path=None, dataset_name='wine'):
     if file_path:
         df = pd.read_csv(file_path)
     else:
-        # Ejemplo: usar un dataset de sklearn y expandirlo
-        from sklearn.datasets import fetch_covtype
-        data = fetch_covtype()
-        # CORRECCIÓN: Seleccionar solo las primeras 7 columnas de los datos también
-        df = pd.DataFrame(data.data[:, :7], columns=data.feature_names[:7])
-        df['target'] = data.target
+        # Usar un dataset más pequeño para pruebas rápidas
+        from sklearn.datasets import load_wine, load_iris
+        from sklearn.datasets import make_classification
         
-        # Si necesitas más filas, puedes duplicar y agregar ruido
-        if len(df) < 10000:
-            df = expand_dataset(df, target_rows=10000)
+        # Opción 1: Generar dataset sintético con 10k filas
+        X, y = make_classification(
+            n_samples=10000, 
+            n_features=7, 
+            n_informative=5,
+            n_redundant=2,
+            n_classes=5,  # Más de 2 clases
+            random_state=42
+        )
+        
+        df = pd.DataFrame(X, columns=[f'feature_{i+1}' for i in range(7)])
+        df['target'] = y
+        
+        print(f"Dataset sintético generado: {df.shape}")
     
     return df
 
