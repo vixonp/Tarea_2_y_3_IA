@@ -102,13 +102,10 @@ El script genera:
 - Los resultados se muestran en consola y se guardan gráficos si es posible
 - El entrenamiento paralelo utiliza ThreadPoolExecutor para optimizar el tiempo de ejecución
 
-## Autor
+## Autores
 
-[Tu nombre]
+Benjamín Aceituno, Vicente Silva.
 
 ## Fecha
 
-[Fecha actual]
-```
-
-¿Quieres que actualice el README con esta versión o prefieres personalizarlo?
+09/11/2025
