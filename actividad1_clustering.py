@@ -4,6 +4,7 @@ from data_loader import load_dataset, preprocess_data
 from clustering import ClusteringComparison, justify_parameters
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os  # Asegúrate de que 'os' esté importado al principio
 
 def main():
     print("=" * 80)
@@ -17,22 +18,31 @@ def main():
     print("-" * 80)
     
     # Cargar dataset
-    # Opción 1: Usar un dataset de sklearn
-    df = load_dataset()
+    # Buscar archivo CSV en el directorio
+    csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
     
-    # Opción 2: Si tienes un archivo CSV, descomenta la siguiente línea:
-    # df = load_dataset(file_path='tu_dataset.csv')
+    if 'DryBeanDataset.csv' in csv_files:
+        df = load_dataset(file_path='DryBeanDataset.csv')
+    elif 'Dry_Bean_Dataset.csv' in csv_files:
+        df = load_dataset(file_path='Dry_Bean_Dataset.csv')
+    elif csv_files:
+        print(f"Archivos CSV encontrados: {csv_files}")
+        print(f"Usando el primer archivo encontrado: {csv_files[0]}")
+        df = load_dataset(file_path=csv_files[0])
+    else:
+        print("No se encontró archivo CSV. Usando dataset sintético...")
+        df = load_dataset()
     
     print(f"Dataset cargado: {df.shape[0]} filas, {df.shape[1]} columnas")
     print(f"Columnas: {df.columns.tolist()}")
     
-    # Seleccionar columna objetivo (ajustar según tu dataset)
-    target_column = 'target'  # Cambiar según tu dataset
+    # Seleccionar columna objetivo
+    target_column = 'Class'  # Para Dry Bean Dataset
     
     if target_column not in df.columns:
-        # Si no existe 'target', usar la última columna
+        # Si no existe 'Class', usar la última columna
         target_column = df.columns[-1]
-        print(f"Columna objetivo no encontrada. Usando: {target_column}")
+        print(f"Columna objetivo '{target_column}' no encontrada. Usando: {target_column}")
     
     print(f"\nDistribución de clases en '{target_column}':")
     print(df[target_column].value_counts())
@@ -75,7 +85,9 @@ def main():
     # Evaluar en conjunto de test
     test_results = clustering_comp.evaluate_top_configurations_on_test(top_configs)
     
-    # Análisis de resultados
+    # ============================================================================
+    # ANÁLISIS DE RESULTADOS
+    # ============================================================================
     print("\n" + "-" * 80)
     print("ANÁLISIS DE RESULTADOS DE CLUSTERING")
     print("-" * 80)
@@ -92,22 +104,6 @@ def main():
             print(f"      Muestras: {analysis['total_samples']}")
             print(f"      Etiqueta dominante: {analysis['dominant_label']}")
             print(f"      Distribución: {analysis['label_distribution']}")
-    
-    print("\n" + "=" * 80)
-    print("CONCLUSIÓN PARTE 1:")
-    print("=" * 80)
-    print("""
-    El procedimiento de asignar etiquetas basado en el cluster dominante puede
-    ser razonable si:
-    1. Los clusters son coherentes (alta homogeneidad interna)
-    2. Hay una etiqueta claramente dominante en cada cluster
-    3. El silhouette score es alto (clusters bien definidos)
-    
-    Sin embargo, este método tiene limitaciones:
-    - Asume que muestras similares pertenecen a la misma clase
-    - No considera la estructura no lineal de los datos
-    - Puede fallar si las clases no son separables por distancia euclidiana
-    """)
     
     # ============================================================================
     # GENERAR GRÁFICOS
@@ -135,8 +131,7 @@ def main():
                    rotation=45, ha='right')
         plt.grid(True, alpha=0.3, axis='y')
         plt.tight_layout()
-        plt.savefig('clustering_comparison.png', dpi=300, bbox_inches='tight')
-        print("  ✓ Gráfico guardado: clustering_comparison.png")
+        plt.show()
         
         # Gráfico de todas las configuraciones evaluadas
         plt.figure(figsize=(14, 8))
@@ -168,11 +163,23 @@ def main():
                   loc='upper right')
         plt.grid(True, alpha=0.3, axis='y')
         plt.tight_layout()
-        plt.savefig('clustering_all_configurations.png', dpi=300, bbox_inches='tight')
-        print("  ✓ Gráfico guardado: clustering_all_configurations.png")
+        plt.show()
         
     except Exception as e:
+        # --- CORRECCIÓN ---
+        # Se eliminó el texto extra fuera del print y el 'except' duplicado.
         print(f"  ✗ Error al generar gráficos: {e}")
+    
+    print("\n" + "=" * 80)
+    print("CONCLUSIÓN PARTE 1:")
+    print("=" * 80)
+    print("""
+    El procedimiento de asignar etiquetas basado en el cluster dominante puede
+    ser razonable si los clusters son coherentes y hay una etiqueta claramente
+    dominante en cada cluster. Sin embargo, este método asume que muestras
+    similares pertenecen a la misma clase y puede fallar si las clases no son
+    separables por distancia euclidiana.
+    """)
     
     print("\n" + "=" * 80)
     print("ACTIVIDAD 1 COMPLETADA")

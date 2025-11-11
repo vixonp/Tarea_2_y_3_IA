@@ -3,55 +3,32 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 
-def load_dataset(file_path=None, dataset_name='wine'):
+def load_dataset(file_path=None):
     """
-    Carga un dataset. Si no se proporciona file_path, usa un dataset de sklearn.
-    
-    Dataset sugerido: Wine Quality (UCI) o cualquier dataset con >10k filas
+    Carga un dataset. Si file_path se proporciona, carga el CSV.
+    Si no, genera un dataset sintético para pruebas.
     """
     if file_path:
         df = pd.read_csv(file_path)
     else:
-        # Usar un dataset más pequeño para pruebas rápidas
-        from sklearn.datasets import load_wine, load_iris
+        # Generar dataset sintético para pruebas rápidas
         from sklearn.datasets import make_classification
         
-        # Opción 1: Generar dataset sintético con 10k filas
         X, y = make_classification(
             n_samples=10000, 
-            n_features=7, 
-            n_informative=5,
-            n_redundant=2,
-            n_classes=5,  # Más de 2 clases
+            n_features=16,
+            n_informative=12,
+            n_redundant=4,
+            n_classes=7,
             random_state=42
         )
         
-        df = pd.DataFrame(X, columns=[f'feature_{i+1}' for i in range(7)])
-        df['target'] = y
+        df = pd.DataFrame(X, columns=[f'feature_{i+1}' for i in range(16)])
+        df['Class'] = y
         
         print(f"Dataset sintético generado: {df.shape}")
     
     return df
-
-def expand_dataset(df, target_rows=10000):
-    """Expande el dataset agregando variaciones con ruido"""
-    current_rows = len(df)
-    if current_rows >= target_rows:
-        return df
-    
-    multiplier = (target_rows // current_rows) + 1
-    expanded_df = pd.concat([df] * multiplier, ignore_index=True)
-    
-    # Agregar ruido pequeño a las columnas numéricas
-    numeric_cols = expanded_df.select_dtypes(include=[np.number]).columns
-    if 'target' in numeric_cols:
-        numeric_cols = numeric_cols.drop('target')
-    
-    for col in numeric_cols:
-        noise = np.random.normal(0, 0.01 * expanded_df[col].std(), len(expanded_df))
-        expanded_df[col] = expanded_df[col] + noise
-    
-    return expanded_df.head(target_rows)
 
 def preprocess_data(df, target_column, test_size=0.2, random_state=42):
     """
@@ -62,6 +39,7 @@ def preprocess_data(df, target_column, test_size=0.2, random_state=42):
     y = df[target_column]
     
     # Codificar etiquetas si son categóricas
+    le = None
     if y.dtype == 'object' or y.dtype.name == 'category':
         le = LabelEncoder()
         y = le.fit_transform(y)
@@ -82,12 +60,5 @@ def preprocess_data(df, target_column, test_size=0.2, random_state=42):
         'y_train': y_train,
         'y_test': y_test,
         'scaler': scaler,
-        'label_encoder': le if 'le' in locals() else None
+        'label_encoder': le
     }
-
-if __name__ == "__main__":
-    # Ejemplo de uso
-    df = load_dataset()
-    print(f"Dataset shape: {df.shape}")
-    print(f"Columns: {df.columns.tolist()}")
-    print(f"Target distribution:\n{df['target'].value_counts()}")
