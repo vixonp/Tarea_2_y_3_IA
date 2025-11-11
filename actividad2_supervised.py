@@ -4,6 +4,7 @@ from data_loader import load_dataset, preprocess_data
 from supervised_learning import ParallelModelTraining
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os  # Agregar import de os
 
 def main():
     print("=" * 80)
@@ -16,23 +17,45 @@ def main():
     print("\n1. CARGANDO Y PREPROCESANDO DATOS")
     print("-" * 80)
     
-    # Cargar dataset
-    # Opción 1: Usar un dataset de sklearn
-    df = load_dataset()
+    # Cargar dataset - Usar la misma lógica que actividad1_clustering.py
+    # Buscar archivo CSV en el directorio
+    csv_files = [f for f in os.listdir('.') if f.endswith('.csv')]
     
-    # Opción 2: Si tienes un archivo CSV, descomenta la siguiente línea:
-    # df = load_dataset(file_path='tu_dataset.csv')
+    if 'DryBeanDataset.csv' in csv_files:
+        df = load_dataset(file_path='DryBeanDataset.csv')
+    elif 'Dry_Bean_Dataset.csv' in csv_files:
+        df = load_dataset(file_path='Dry_Bean_Dataset.csv')
+    elif 'DryBeanDataset_ar.csv' in csv_files:
+        df = load_dataset(file_path='DryBeanDataset_ar.csv')
+    elif csv_files:
+        print(f"Archivos CSV encontrados: {csv_files}")
+        print(f"Usando el primer archivo encontrado: {csv_files[0]}")
+        df = load_dataset(file_path=csv_files[0])
+    else:
+        print("No se encontró archivo CSV. Usando dataset sintético...")
+        df = load_dataset()
     
     print(f"Dataset cargado: {df.shape[0]} filas, {df.shape[1]} columnas")
     print(f"Columnas: {df.columns.tolist()}")
     
-    # Seleccionar columna objetivo (ajustar según tu dataset)
-    target_column = 'target'  # Cambiar según tu dataset
+    # Seleccionar columna objetivo - Usar la misma lógica que actividad1_clustering.py
+    # Intentar diferentes nombres comunes de columna objetivo
+    target_column = None
     
-    if target_column not in df.columns:
-        # Si no existe 'target', usar la última columna
+    # Priorizar nombres comunes
+    possible_target_names = ['Class', 'class', 'target', 'Target', 'label', 'Label', 'y', 'Y']
+    
+    for name in possible_target_names:
+        if name in df.columns:
+            target_column = name
+            break
+    
+    # Si no se encontró ninguna, usar la última columna
+    if target_column is None:
         target_column = df.columns[-1]
-        print(f"Columna objetivo no encontrada. Usando: {target_column}")
+        print(f"Columna objetivo no encontrada en nombres comunes. Usando: {target_column}")
+    else:
+        print(f"Columna objetivo detectada: {target_column}")
     
     print(f"\nDistribución de clases en '{target_column}':")
     print(df[target_column].value_counts())
