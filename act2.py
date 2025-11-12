@@ -18,9 +18,6 @@ def find_drybean_dataset():
     """Busca el archivo DryBeanDataset en el directorio actual"""
     possible_names = [
         'DryBeanDataset.csv',
-        'Dry_Bean_Dataset.csv',
-        'DryBeanDataset_ar.csv',
-        'DryBeanDataset.ar.csv'
     ]
     
     for name in possible_names:
