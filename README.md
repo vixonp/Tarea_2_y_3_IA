@@ -31,13 +31,14 @@ Este proyecto implementa una comparación exhaustiva de algoritmos de aprendizaj
 
 ```
 T2/
-├── main.py                  # Script principal
-├── data_loader.py           # Carga y preprocesamiento de datos
-├── clustering.py            # Parte 1: Algoritmos de clustering
-├── supervised_learning.py   # Parte 2: Aprendizaje supervisado
-├── config.json              # Configuración de hiperparámetros
-├── requirements.txt         # Dependencias del proyecto
-└── README.md                # Este archivo
+├── DryBeanDataset.csv
+├── README.md
+├── act1.py
+├── act2.py
+├── config.json
+├── data_loader.py
+├── requirements.txt
+└── venv
 ```
 
 ## Instalación
@@ -45,7 +46,7 @@ T2/
 ### 1. Crear entorno virtual
 
 ```bash
-python3 -m venv venv
+python3 -m venv venv #Eliminar si da problemas
 source venv/bin/activate
 ```
 
@@ -61,22 +62,12 @@ pip install -r requirements.txt
 ### Ejecutar el proyecto completo
 
 ```bash
-python main.py
+python act1.py
+
+#y luego
+
+python act2.py
 ```
-
-### Usar un dataset personalizado
-
-Edita `main.py` y descomenta la línea correspondiente:
-
-```python
-df = load_dataset(file_path='tu_dataset.csv')
-```
-
-Asegúrate de que tu dataset cumpla con los requisitos mencionados.
-
-## Configuración
-
-Los hiperparámetros para Regresión Logística y SVM se configuran en `config.json`. Puedes modificar este archivo para experimentar con diferentes configuraciones.
 
 ## Dependencias
 
@@ -98,9 +89,7 @@ El script genera:
 
 ## Notas
 
-- El dataset por defecto es `fetch_covtype` de sklearn, que se expande automáticamente si tiene menos de 10,000 filas
 - Los resultados se muestran en consola y se guardan gráficos si es posible
-- El entrenamiento paralelo utiliza ThreadPoolExecutor para optimizar el tiempo de ejecución
 
 ## Autores
 
@@ -108,4 +97,4 @@ Benjamín Aceituno, Vicente Silva.
 
 ## Fecha
 
-09/11/2025
+11/11/2025
