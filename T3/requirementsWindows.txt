@@ -1,7 +1,19 @@
-tensorflow==2.15.0
-scikit-learn==1.4.2
-matplotlib==3.8.4
-seaborn==0.13.2
-numpy==1.26.4
-pandas==2.2.2
-tqdm==4.66.4
+# Requirements para Windows con RTX 3070
+# TensorFlow con soporte CUDA/cuDNN
+tensorflow==2.15.0  # Compatible con CUDA 12.2
+
+# Librerías de ML y visualización
+scikit-learn==1.3.2
+matplotlib==3.8.2
+seaborn==0.13.0
+numpy==1.24.3
+pandas==2.1.4
+tqdm==4.66.1
+
+# Adicionales para optimización GPU
+cudatoolkit==11.8.0  # Si usas conda
+nvidia-cudnn-cu11==8.6.0.163  # cuDNN para CUDA 11
+
+# Opcional: para monitoreo GPU
+pynvml==11.5.0  # NVIDIA Management Library
+gputil==1.4.0
