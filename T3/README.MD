@@ -9,3 +9,9 @@ pip install -r requirements.txt
 
 # Desplegar dependencias para windows
 pip install -r requirementsWindows.txt
+
+# en pc....
+
+pip install tensorflow[and-cuda]
+
+pip install scikit-learn matplotlib seaborn pandas tqdm numpy
