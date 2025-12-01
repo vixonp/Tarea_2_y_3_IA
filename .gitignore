@@ -4,3 +4,6 @@ ENV/
 env/
 **/.venv/
 T3/.venv/
+.DS_Store/
+**/.DS_Store/
+T3/.DS_Store/
